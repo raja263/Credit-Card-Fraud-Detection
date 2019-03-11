@@ -7,16 +7,79 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import MySQLdb as mdb
 
 class cfdclass(object):
+
+
+    def updateThresholds(self):
+        con = mdb.connect("localhost", "raja", "raja", "testing", 3308)
+        xact = self.actno.text()
+        cur = con.cursor()
+        cur.execute("UPDATE thresholds SET  maxlimit = '" + self.lineEdit1.text() + "' where accountno='" + xact + "';")
+        cur.execute("UPDATE thresholds SET  shopping = '" + self.lineEdit2.text() + "' where accountno='" + xact + "';")
+        cur.execute("UPDATE thresholds SET  travel = '" + self.lineEdit3.text() + "' where accountno='" + xact + "';")
+        cur.execute("UPDATE thresholds SET  bills = '" + self.lineEdit4.text() + "' where accountno='" + xact + "';")
+        cur.execute("UPDATE thresholds SET  misc = '" + self.lineEdit5.text() + "' where accountno='" + xact + "';")
+
+
+    def resetThresholds(self):
+        self.lineEdit1.setText("0")
+        self.lineEdit2.setText("0")
+        self.lineEdit3.setText("0")
+        self.lineEdit4.setText("0")
+        self.lineEdit5.setText("0")
+
+
+    def loadThresholds(self):
+        con = mdb.connect("localhost", "raja", "raja", "testing", 3308)
+        cur = con.cursor()
+        xact = self.actno.text()
+        cur.execute("SELECT * FROM thresholds where accountno ='"+xact+"';")
+
+        for i in range(cur.rowcount):
+            result = cur.fetchall()
+
+            rew = 0
+            for row in result:
+                self.lineEdit1.setText((str(row[1])))
+                self.lineEdit2.setText((str(row[2])))
+                self.lineEdit3.setText((str(row[3])))
+                self.lineEdit4.setText((str(row[4])))
+                self.lineEdit5.setText((str(row[5])))
+                rew = rew + 1
+
+
+
+    def loadTransactionTable(self):
+        self.loadThresholds()
+        con = mdb.connect("localhost", "raja", "raja", "testing", 3308)
+        cur = con.cursor()
+        cur.execute("SELECT * FROM check1")
+
+        for i in range(cur.rowcount):
+            result = cur.fetchall()
+
+            rew = 0
+            for row in result:
+                self.tableWidget.setItem(rew, 0, QtWidgets.QTableWidgetItem(str(row[0])))
+                self.tableWidget.setItem(rew, 1, QtWidgets.QTableWidgetItem(str(row[1])))
+                self.tableWidget.setItem(rew, 2, QtWidgets.QTableWidgetItem(str(row[2])))
+                self.tableWidget.setItem(rew, 3, QtWidgets.QTableWidgetItem(str(row[3])))
+                rew = rew + 1
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1098, 675)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.tableView = QtWidgets.QTableView(self.centralwidget)
-        self.tableView.setGeometry(QtCore.QRect(390, 50, 701, 531))
-        self.tableView.setObjectName("tableView")
+
+        self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
+        self.tableWidget.setGeometry(QtCore.QRect(500, 50, 530, 500))
+        self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setRowCount(10)
+        self.tableWidget.setColumnCount(4)
+
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(70, 20, 201, 16))
         font = QtGui.QFont()
@@ -95,13 +158,16 @@ class cfdclass(object):
         font.setPointSize(10)
         self.applybt.setFont(font)
         self.applybt.setObjectName("applybt")
+        self.applybt.clicked.connect(self.updateThresholds)                                # UPDATING THRESHOLDS
         self.resetbt = QtWidgets.QPushButton(self.centralwidget)
         self.resetbt.setGeometry(QtCore.QRect(180, 440, 93, 28))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.resetbt.setFont(font)
         self.resetbt.setObjectName("resetbt")
+        self.resetbt.clicked.connect(self.resetThresholds)
         self.refresh = QtWidgets.QPushButton(self.centralwidget)
+        self.refresh.clicked.connect(self.loadTransactionTable)                                # LOAD TABLE FUNCTION CALL
         self.refresh.setGeometry(QtCore.QRect(710, 600, 93, 28))
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -136,6 +202,27 @@ class cfdclass(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        with open('log.txt') as f:
+            first_line = f.readline()
+            f.close()
+
+        con = mdb.connect("localhost", "raja", "raja", "testing", 3308)
+        cur = con.cursor()
+        cur.execute("SELECT accountno FROM users where id='" + first_line + "';")
+        for i in range(cur.rowcount):
+            result = cur.fetchall()
+            for row in result:
+                actnumber = (str(row[0]))
+
+        self.actno.setText(actnumber)
+
+        self.loadThresholds()
+        self.loadTransactionTable()
+
+
+
+
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -160,5 +247,6 @@ if __name__ == "__main__":
     ui = cfdclass()
     ui.setupUi(MainWindow)
     MainWindow.show()
+    print(login.uname)
     sys.exit(app.exec_())
 

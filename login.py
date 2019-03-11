@@ -11,7 +11,7 @@ from cfd import *
 import MySQLdb as mdb
 
 class Ui_MainWindow(object):
-
+    xuname = ''
     def cfdshow(self):
         self.welcomeWindow = QtWidgets.QMainWindow()
         self.ui = cfdclass()
@@ -28,7 +28,6 @@ class Ui_MainWindow(object):
         cur.execute("SELECT * FROM users where id='" + uname +"';" )
         for i in range(cur.rowcount):
             result = cur.fetchall()
-            rew = 0
             for row in result:
                 xuname = (str(row[1]))
                 xpwd = (str(row[2]))
@@ -37,6 +36,11 @@ class Ui_MainWindow(object):
         print(xpwd)
 
         if (uname==xuname and pwd==xpwd):
+            open('log.txt', 'w').close()
+
+            with open('log.txt', 'w') as file:
+                file.write(uname)
+                file.close()
             self.cfdshow()
         else:
             self.invalid.show()
