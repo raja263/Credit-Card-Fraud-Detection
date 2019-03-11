@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from cfd import *
+import MySQLdb as mdb
 
 class Ui_MainWindow(object):
 
@@ -18,10 +19,24 @@ class Ui_MainWindow(object):
         self.welcomeWindow.show()
 
     def validate(self):
+
         uname = self.lineEdit.text()
         pwd = self.lineEdit_2.text()
 
-        if (uname=='raja' and pwd=='raja'):
+        con = mdb.connect("localhost", "raja", "raja", "testing", 3308)
+        cur = con.cursor()
+        cur.execute("SELECT * FROM users where id='" + uname +"';" )
+        for i in range(cur.rowcount):
+            result = cur.fetchall()
+            rew = 0
+            for row in result:
+                xuname = (str(row[1]))
+                xpwd = (str(row[2]))
+
+        print(xuname)
+        print(xpwd)
+
+        if (uname==xuname and pwd==xpwd):
             self.cfdshow()
         else:
             self.invalid.show()
@@ -65,6 +80,7 @@ class Ui_MainWindow(object):
         font.setPointSize(10)
         self.lineEdit_2.setFont(font)
         self.lineEdit_2.setObjectName("lineEdit_2")
+        self.lineEdit_2.setEchoMode(QtWidgets.QLineEdit.Password)
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(300, 290, 93, 28))
         font = QtGui.QFont()
